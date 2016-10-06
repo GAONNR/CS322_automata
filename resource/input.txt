@@ -1,10 +1,11 @@
-bb
-ababab
-bbabb
-aabaab
+1
+10
+010
+0110
 
-bababa
-bbabbaa
-bbabaab
-aaabbb
-aa
+010101
+11011
+01101
+1011010
+011010110
+end
