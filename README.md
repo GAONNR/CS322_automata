@@ -1,3 +1,5 @@
+# CS322 - Automata Project
+
 Works with python 2.7
 
 ### How to execute program
