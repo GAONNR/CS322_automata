@@ -6,6 +6,5 @@ Works with python 2.7
 $ python proj_cs322.py
 (Before executing, dfa.txt and input.txt should be located in *resource* folder.)
 
-### How to execute **hangeul mearly machine**
-$ python hangeul-mearly-machine.py
-
+### How to execute **hangeul mealy machine**
+$ python hangeul-mealy-machine.py
