@@ -413,4 +413,4 @@ if __name__ == '__main__':
 
     ## clearScr()
     typeWriter(way_of_writing)
-    print u'\n잘가영'
+    print u'\nGood Bye'
