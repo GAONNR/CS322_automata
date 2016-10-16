@@ -370,10 +370,13 @@ def typeWriter(way_of_writing):
             curr_state = typeFunction(chara, curr_state)
         elif chara in string.printable:
             curr_state.completed = True
-            new_state = State('S')
-            new_state.append(chara)
-            state_list.append(new_state)
-            new_state.completed = True
+            if not curr_state:
+                curr_state.append(chara)
+            else:
+                new_state = State('S')
+                new_state.append(chara)
+                state_list.append(new_state)
+                new_state.completed = True
             curr_state = State('S')
             state_list.append(curr_state)
         elif ord(chara) == 0x7f:
