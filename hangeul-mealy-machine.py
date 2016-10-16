@@ -45,8 +45,7 @@ sys.setdefaultencoding('utf-8')
 getch = _Getch()
 ## clearScr = _clearScreen()
 
-SIGKILL = chr(0x04)
-SIGSTOP = chr(0x03)
+SIGEXIT = [chr(0x04), chr(0x03), chr(0x0d)]
 BACKSPACE = chr(0x7f)
 
 keymap = {'q': u'ㅂ', 'w': u'ㅈ', 'e': u'ㄷ', 'r': u'ㄱ', 't': u'ㅅ',
@@ -75,7 +74,7 @@ jongseong = {None: 0, u'ㄱ': 1, u'ㄲ': 2, u'ㄳ': 3, u'ㄴ': 4,
 gyeopbatchim = {u'ㄳ': [u'ㄱ', u'ㅅ'], u'ㄵ': [u'ㄴ', u'ㅈ'], u'ㄶ': [u'ㄴ', u'ㅎ'], u'ㄺ': [u'ㄹ', u'ㄱ'],
                u'ㄻ': [u'ㄹ', u'ㅁ'], u'ㄼ': [u'ㄹ', u'ㅂ'], u'ㄽ': [u'ㄹ', u'ㅅ'], u'ㄾ': [u'ㄹ', u'ㅌ'],
                u'ㄿ': [u'ㄹ', u'ㅍ'], u'ㅀ': [u'ㄹ', u'ㅎ'], u'ㅄ': [u'ㅂ', u'ㅅ']}
-gyeopmoeum = {u'ㅘ': u'ㅗ', u'ㅙ': u'ㅗ', u'ㅝ': u'ㅜ', u'ㅞ': u'ㅜ', u'ㅟ': u'ㅜ', u'ㅢ': u'ㅡ'}
+gyeopmoeum = {u'ㅘ': u'ㅗ', u'ㅙ': u'ㅗ', u'ㅚ': u'ㅗ', u'ㅝ': u'ㅜ', u'ㅞ': u'ㅜ', u'ㅟ': u'ㅜ', u'ㅢ': u'ㅡ'}
 
 jaeum2gyeop = {(u'ㄱ', u'ㅅ'): u'ㄳ', (u'ㅂ', u'ㅅ'): u'ㅄ', (u'ㄴ', u'ㅈ'): u'ㄵ', (u'ㄴ', u'ㅎ'): u'ㄶ', (u'ㄹ', u'ㄱ'): u'ㄺ',
                (u'ㄹ', u'ㅁ'): u'ㄻ', (u'ㄹ', u'ㅂ'): u'ㄼ', (u'ㄹ', u'ㅅ'): u'ㄽ', (u'ㄹ', u'ㅌ'): u'ㄾ', (u'ㄹ', u'ㅍ'): u'ㄿ',
@@ -85,6 +84,7 @@ class State:
     def __init__(self, state):
         self.state = state # initial State
         self.chara_list = []
+        self.completed = False
 
     def append(self, chara):
         self.chara_list.append(chara)
@@ -115,6 +115,7 @@ def batchimFirst(chara, state):
 
     elif state.state == 'V':
         if not chara in jungseong:
+            state.completed = True
             new_state = State('V')
             new_state.append(chara)
             state_list.append(new_state)
@@ -156,6 +157,7 @@ def batchimFirst(chara, state):
                 state.state = 'I'
                 state.append(u'ㅢ')
             else:
+                state.completed = True
                 state.append(last_chara)
                 new_state = batchimFirst(chara, State('S'))
                 state_list.append(new_state)
@@ -175,6 +177,7 @@ def batchimFirst(chara, state):
                 state.append(chara)
                 return state
             else:
+                state.completed = True
                 new_state = State('S')
                 state_list.append(new_state)
                 return batchimFirst(chara, new_state)
@@ -185,6 +188,7 @@ def batchimFirst(chara, state):
             if last_chara in gyeopbatchim:
                 state.append(gyeopbatchim[last_chara][0])
                 last_chara = gyeopbatchim[last_chara][1]
+            state.completed = True
             new_state = State('V')
             new_state.append(last_chara)
             state_list.append(new_state)
@@ -195,6 +199,7 @@ def batchimFirst(chara, state):
                 state.state = 'L'
                 state.append(jaeum2gyeop[(last_chara, chara)])
             else:
+                state.completed = True
                 state.append(last_chara)
                 new_state = State('S')
                 state_list.append(new_state)
@@ -207,6 +212,8 @@ def batchimFirst(chara, state):
         return state
 
 def choseongFirst(chara, state):
+    if len(state_list) > 2:
+        state_list[-3].completed = True
     if state.state == 'S':
         ### 모음 먼저는 나중에
         if chara in choseong:
@@ -227,13 +234,16 @@ def choseongFirst(chara, state):
                 if (last_chara, state_chara) in jaeum2gyeop:
                     past_state.state = 'L'
                     past_state.append(jaeum2gyeop[(last_chara, state_chara)])
+                    past_state.completed = True
                     new_state = State('S')
                     state_list.append(new_state)
                     return choseongFirst(chara, new_state)
                 else:
                     past_state.append(last_chara)
                     new_state = State('S')
+                    past_state.completed = True
                     state_list.append(new_state)
+                    new_state.completed = True
                     choseongFirst(state_chara, new_state)
                     new_new_state = State('S')
                     state_list.append(new_new_state)
@@ -254,6 +264,7 @@ def choseongFirst(chara, state):
                 return state
             else:
                 state_list.append(state)
+                state.completed = True
                 new_state = State('S')
                 state_list.append(new_state)
                 return choseongFirst(chara, new_state)
@@ -295,6 +306,7 @@ def choseongFirst(chara, state):
                 state.append(u'ㅢ')
             else:
                 state.append(last_chara)
+                state.completed = True
                 new_state = batchimFirst(chara, State('S'))
                 state_list.append(new_state)
                 return new_state
@@ -306,61 +318,8 @@ def choseongFirst(chara, state):
             return batchimFirst(chara, new_state)
 
     elif state.state in ['K', 'N', 'R', 'L']:
-        '''
-        if not chara in choseong:
-            last_chara = state.pop()
-            if last_chara in gyeopbatchim:
-                state.append(gyeopbatchim[last_chara][0])
-                last_chara = gyeopbatchim[last_chara][1]
-            new_state = State('V')
-            new_state.append(last_chara)
-            state_list.append(new_state)
-            return batchimFirst(chara, new_state)
-        else:
-            last_chara = state.pop()
-            if last_chara == u'ㄱ' and chara == u'ㅅ':
-                state.state = 'L'
-                state.append(u'ㄳ')
-            elif last_chara == u'ㅂ' and chara == u'ㅅ':
-                state.state = 'L'
-                state.append(u'ㅄ')
-            elif state.state == 'N' and chara == u'ㅈ':
-                state.state = 'L'
-                state.append(u'ㄵ')
-            elif state.state == 'N' and chara == u'ㅎ':
-                state.state = 'L'
-                state.append(u'ㄶ')
-            elif state.state == 'R' and chara == u'ㄱ':
-                state.state = 'L'
-                state.append(u'ㄺ')
-            elif state.state == 'R' and chara == u'ㅁ':
-                state.state = 'L'
-                state.append(u'ㄻ')
-            elif state.state == 'R' and chara == u'ㅂ':
-                state.state = 'L'
-                state.append(u'ㄼ')
-            elif state.state == 'R' and chara == u'ㅅ':
-                state.state = 'L'
-                state.append(u'ㄽ')
-            elif state.state == 'R' and chara == u'ㅌ':
-                state.state = 'L'
-                state.append(u'ㄾ')
-            elif state.state == 'R' and chara == u'ㅍ':
-                state.state = 'L'
-                state.append(u'ㄿ')
-            elif state.state == 'R' and chara == u'ㅎ':
-                state.state = 'L'
-                state.append(u'ㅀ')
-            else:
-                state.append(last_chara)
-                new_state = State('S')
-                state_list.append(new_state)
-                return batchimFirst(chara, new_state)
-            ### new_state = State('S')
-            ### state_list.append(new_state)
-            return state
-        '''
         new_state = State('S')
+        state_list.append(new_state)
         return choseongFirst(chara, new_state)
 
     else:
@@ -377,7 +336,6 @@ def printer(state):
             result = unichr(0xAC00 + 28 * 21 * cho + 28 * jung)
             sys.stdout.write(result)
         else:
-            ###더 짜야됨: ㅢ + ㅇ
             sys.stdout.write(state.get(0))
     elif state.len() == 3:
         cho = choseong[state.get(0)]
@@ -401,24 +359,29 @@ def typeWriter(way_of_writing):
     curr_state = State('S')
     state_list.append(curr_state)
 
-    chk = True
     while True:
         chara = getch()
-        if chara == SIGKILL or chara == SIGSTOP:
+        if chara in SIGEXIT:
             return
         elif ord(chara) >= ord('a') and ord(chara) <= ord('z') or (chara in 'QWERTOP'):
-            chk = True
             chara = keymap[chara]
             curr_state = typeFunction(chara, curr_state)
         elif chara in string.printable:
-            chk = True
+            curr_state.completed = True
             new_state = State('S')
             new_state.append(chara)
             state_list.append(new_state)
+            new_state.completed = True
             curr_state = State('S')
             state_list.append(curr_state)
         elif ord(chara) == 0x7f:
-            if chk:
+            ### delete
+            if curr_state.completed:
+                state_list.pop()
+                if not state_list:
+                    state_list.append(State('S'))
+                curr_state = state_list[-1]
+            else:
                 try:
                     last = curr_state.pop()
                     if last in gyeopbatchim:
@@ -426,25 +389,18 @@ def typeWriter(way_of_writing):
                     elif last in gyeopmoeum:
                         curr_state.append(gyeopmoeum[last])
                     if curr_state.len() == 0:
-                        chk = False
-                    else:
-                        new_state = State('S')
-                        for i in range(curr_state.len()):
-                            typeFunction(curr_state.get(i), new_state)
-                        state_list.pop()
-                        state_list.append(new_state)
-                        curr_state = new_state
-                except:
-                    for i in range(2):
                         state_list.pop()
                         if not state_list:
                             state_list.append(State('S'))
+                        curr_state = state_list[-1]
+                except:
+                    state_list.pop()
+                    if not state_list:
+                        state_list.append(State('S'))
+                    state_list.pop()
+                    if not state_list:
+                        state_list.append(State('S'))
                     curr_state = state_list[-1]
-            if not chk:
-                state_list.pop()
-                if not state_list:
-                    state_list.append(State('S'))
-                curr_state = state_list[-1]
         else:
             continue
         sys.stdout.write('\x1b[2K\r')
