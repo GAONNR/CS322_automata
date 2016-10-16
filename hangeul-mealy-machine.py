@@ -278,6 +278,8 @@ def choseongFirst(chara, state):
             elif chara in [u'ㅛ', u'ㅠ', u'ㅣ', u'ㅐ', u'ㅔ', u'ㅒ', u'ㅖ']:
                 state.state = 'I'
             state.append(chara)
+            if len(state_list) > 3:
+                state_list[-2].completed = True
             return state
 
     elif state.state in ['O', 'U', 'A', 'I']:
