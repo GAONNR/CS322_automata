@@ -75,6 +75,11 @@ jongseong = {None: 0, u'ㄱ': 1, u'ㄲ': 2, u'ㄳ': 3, u'ㄴ': 4,
 gyeopbatchim = {u'ㄳ': [u'ㄱ', u'ㅅ'], u'ㄵ': [u'ㄴ', u'ㅈ'], u'ㄶ': [u'ㄴ', u'ㅎ'], u'ㄺ': [u'ㄹ', u'ㄱ'],
                u'ㄻ': [u'ㄹ', u'ㅁ'], u'ㄼ': [u'ㄹ', u'ㅂ'], u'ㄽ': [u'ㄹ', u'ㅅ'], u'ㄾ': [u'ㄹ', u'ㅌ'],
                u'ㄿ': [u'ㄹ', u'ㅍ'], u'ㅀ': [u'ㄹ', u'ㅎ'], u'ㅄ': [u'ㅂ', u'ㅅ']}
+gyeopmoeum = {u'ㅘ': u'ㅗ', u'ㅙ': u'ㅗ', u'ㅝ': u'ㅜ', u'ㅞ': u'ㅜ', u'ㅟ': u'ㅜ', u'ㅢ': u'ㅡ'}
+
+jaeum2gyeop = {(u'ㄱ', u'ㅅ'): u'ㄳ', (u'ㅂ', u'ㅅ'): u'ㅄ', (u'ㄴ', u'ㅈ'): u'ㄵ', (u'ㄴ', u'ㅎ'): u'ㄶ', (u'ㄹ', u'ㄱ'): u'ㄺ',
+               (u'ㄹ', u'ㅁ'): u'ㄻ', (u'ㄹ', u'ㅂ'): u'ㄼ', (u'ㄹ', u'ㅅ'): u'ㄽ', (u'ㄹ', u'ㅌ'): u'ㄾ', (u'ㄹ', u'ㅍ'): u'ㄿ',
+               (u'ㄹ', u'ㅎ'): u'ㅀ'}
 
 class State:
     def __init__(self, state):
@@ -100,7 +105,6 @@ state_list = []
 
 def batchimFirst(chara, state):
     if state.state == 'S':
-        ### 모음 먼저는 나중에
         if chara in choseong:
             state.append(chara)
             state.state = 'V'
@@ -187,6 +191,133 @@ def batchimFirst(chara, state):
             return batchimFirst(chara, new_state)
         else:
             last_chara = state.pop()
+            if (last_chara, chara) in jaeum2gyeop:
+                state.state = 'L'
+                state.append(jaeum2gyeop[(last_chara, chara)])
+            else:
+                state.append(last_chara)
+                new_state = State('S')
+                state_list.append(new_state)
+                return batchimFirst(chara, new_state)
+            ### new_state = State('S')
+            ### state_list.append(new_state)
+            return state
+
+    else:
+        return state
+
+def choseongFirst(chara, state):
+    if state.state == 'S':
+        ### 모음 먼저는 나중에
+        if chara in choseong:
+            state.append(chara)
+            state.state = 'V'
+        else:
+            state.state = 'V'
+            return choseongFirst(chara, state)
+        return state
+
+    elif state.state == 'V':
+        if not chara in jungseong:
+            state_list.pop()
+            past_state = state_list[-1]
+            if past_state.state in ['K', 'N', 'R', 'L']:
+                last_chara = past_state.pop()
+                state_chara = state.pop()
+                if (last_chara, state_chara) in jaeum2gyeop:
+                    past_state.state = 'L'
+                    past_state.append(jaeum2gyeop[(last_chara, state_chara)])
+                    new_state = State('S')
+                    state_list.append(new_state)
+                    return choseongFirst(chara, new_state)
+                else:
+                    past_state.append(last_chara)
+                    new_state = State('S')
+                    state_list.append(new_state)
+                    choseongFirst(state_chara, new_state)
+                    new_new_state = State('S')
+                    state_list.append(new_new_state)
+                    return choseongFirst(chara, new_new_state)
+            elif past_state.state in ['O', 'U', 'A', 'I']:
+                state_chara = state.pop()
+                if state_chara in [u'ㄱ', u'ㅂ']:
+                    past_state.state = 'K'
+                elif state_chara == u'ㄴ':
+                    past_state.state = 'N'
+                elif state_chara == u'ㄹ':
+                    past_state.state = 'R'
+                elif state_chara in [u'ㄷ', u'ㅁ', u'ㅅ', u'ㅇ', u'ㅈ', u'ㅊ', u'ㅋ', u'ㅌ', u'ㅍ', u'ㅎ', u'ㄲ', u'ㅆ']:
+                    past_state.state = 'L'
+                past_state.append(state_chara)
+                state.append(chara)
+                state_list.append(state)
+                return state
+            else:
+                state_list.append(state)
+                new_state = State('S')
+                state_list.append(new_state)
+                return choseongFirst(chara, new_state)
+        else:
+            if chara == u'ㅗ':
+                state.state = 'O'
+            elif chara == u'ㅜ':
+                state.state = 'U'
+            elif chara in [u'ㅏ', u'ㅑ', u'ㅓ', u'ㅕ', u'ㅡ']:
+                state.state = 'A'
+            elif chara in [u'ㅛ', u'ㅠ', u'ㅣ', u'ㅐ', u'ㅔ', u'ㅒ', u'ㅖ']:
+                state.state = 'I'
+            state.append(chara)
+            return state
+
+    elif state.state in ['O', 'U', 'A', 'I']:
+        if not chara in jongseong:
+            last_chara = state.pop()
+            if state.state == 'O' and chara == 'ㅏ':
+                state.state = 'A'
+                state.append(u'ㅘ')
+            elif state.state == 'O' and chara == 'ㅣ':
+                state.state = 'I'
+                state.append(u'ㅚ')
+            elif state.state == 'O' and chara == 'ㅐ':
+                state.state = 'I'
+                state.append(u'ㅙ')
+            elif state.state == 'U' and chara == 'ㅓ':
+                state.state = 'A'
+                state.append(u'ㅝ')
+            elif state.state == 'U' and chara == 'ㅣ':
+                state.state = 'I'
+                state.append(u'ㅟ')
+            elif state.state == 'U' and chara == 'ㅔ':
+                state.state == 'I'
+                state.append(u'ㅞ')
+            elif last_chara == 'ㅡ' and chara == 'ㅣ':
+                state.state = 'I'
+                state.append(u'ㅢ')
+            else:
+                state.append(last_chara)
+                new_state = batchimFirst(chara, State('S'))
+                state_list.append(new_state)
+                return new_state
+            return state
+
+        else:
+            new_state = State('S')
+            state_list.append(new_state)
+            return batchimFirst(chara, new_state)
+
+    elif state.state in ['K', 'N', 'R', 'L']:
+        '''
+        if not chara in choseong:
+            last_chara = state.pop()
+            if last_chara in gyeopbatchim:
+                state.append(gyeopbatchim[last_chara][0])
+                last_chara = gyeopbatchim[last_chara][1]
+            new_state = State('V')
+            new_state.append(last_chara)
+            state_list.append(new_state)
+            return batchimFirst(chara, new_state)
+        else:
+            last_chara = state.pop()
             if last_chara == u'ㄱ' and chara == u'ㅅ':
                 state.state = 'L'
                 state.append(u'ㄳ')
@@ -228,12 +359,12 @@ def batchimFirst(chara, state):
             ### new_state = State('S')
             ### state_list.append(new_state)
             return state
+        '''
+        new_state = State('S')
+        return choseongFirst(chara, new_state)
 
     else:
         return state
-
-def choseongFirst():
-    print u'구현 나중에 할래'
 
 def printer(state):
     if state.len() == 1:
@@ -288,10 +419,27 @@ def typeWriter(way_of_writing):
             state_list.append(curr_state)
         elif ord(chara) == 0x7f:
             if chk:
-                if curr_state.len() < 2:
-                    chk = False
-                else:
-                    curr_state.pop()
+                try:
+                    last = curr_state.pop()
+                    if last in gyeopbatchim:
+                        curr_state.append(gyeopbatchim[last][0])
+                    elif last in gyeopmoeum:
+                        curr_state.append(gyeopmoeum[last])
+                    if curr_state.len() == 0:
+                        chk = False
+                    else:
+                        new_state = State('S')
+                        for i in range(curr_state.len()):
+                            typeFunction(curr_state.get(i), new_state)
+                        state_list.pop()
+                        state_list.append(new_state)
+                        curr_state = new_state
+                except:
+                    for i in range(2):
+                        state_list.pop()
+                        if not state_list:
+                            state_list.append(State('S'))
+                    curr_state = state_list[-1]
             if not chk:
                 state_list.pop()
                 if not state_list:
