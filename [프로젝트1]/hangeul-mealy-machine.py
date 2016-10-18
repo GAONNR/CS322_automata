@@ -227,13 +227,7 @@ def choseongFirst(chara, state):
     elif state.state == 'V':
         if not chara in jungseong:
             state_list.pop()
-            if len(state_list) > 0:
-                past_state = state_list[-1]
-            else:
-                state_list.append(state)
-                new_state = State('S')
-                state_list.append(new_state)
-                return choseongFirst(chara, new_state)
+            past_state = state_list[-1]
             if past_state.state in ['K', 'N', 'R', 'L']:
                 last_chara = past_state.pop()
                 state_chara = state.pop()
