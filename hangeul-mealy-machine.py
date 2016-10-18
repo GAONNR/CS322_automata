@@ -404,12 +404,14 @@ def typeWriter(way_of_writing):
                         if not state_list:
                             state_list.append(State('S'))
                         curr_state = state_list[-1]
-                    new_state = State('S')
-                    for i in range(curr_state.len()):
-                        typeFunction(curr_state.get(i), new_state)
-                    state_list.pop()
-                    state_list.append(new_state)
-                    curr_state = new_state
+
+                    else:
+                        new_state = State('S')
+                        for i in range(curr_state.len()):
+                            typeFunction(curr_state.get(i), new_state)
+                        state_list.pop()
+                        state_list.append(new_state)
+                        curr_state = new_state
                 except:
                     state_list.pop()
                     if not state_list:
