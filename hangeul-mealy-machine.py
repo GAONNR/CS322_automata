@@ -227,7 +227,13 @@ def choseongFirst(chara, state):
     elif state.state == 'V':
         if not chara in jungseong:
             state_list.pop()
-            past_state = state_list[-1]
+            if len(state_list) > 0:
+                past_state = state_list[-1]
+            else:
+                state_list.append(state)
+                new_state = State('S')
+                state_list.append(new_state)
+                return choseongFirst(chara, new_state)
             if past_state.state in ['K', 'N', 'R', 'L']:
                 last_chara = past_state.pop()
                 state_chara = state.pop()
@@ -398,6 +404,14 @@ def typeWriter(way_of_writing):
                         if not state_list:
                             state_list.append(State('S'))
                         curr_state = state_list[-1]
+
+                    else:
+                        new_state = State('S')
+                        for i in range(curr_state.len()):
+                            typeFunction(curr_state.get(i), new_state)
+                        state_list.pop()
+                        state_list.append(new_state)
+                        curr_state = new_state
                 except:
                     state_list.pop()
                     if not state_list:
