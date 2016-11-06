@@ -13,10 +13,15 @@ def main():
     initial = get[3]
     finals = get[4]
 
-    closures = getEClosure(states, input_symbol, transitions, initial, finals)
+    print (transitions)
+    print ('==================')
+    closures, new_transitions = getClosure(states, input_symbol, transitions, initial, finals)
 
 def getENFA(states, input_symbol, transitions, finals):
-    f_enfa = open("resource/e-nfa.txt", "r")
+    if len(sys.argv) > 1:
+        f_enfa = open(sys.argv[1], "r")
+    else:
+        f_enfa = open("resource/e-nfa.txt", "r")
     expected_in = ['State', 'Input symbol', 'State transition function', 'Initial state', 'Final state']
     initial = ''
 
@@ -58,12 +63,69 @@ def getENFA(states, input_symbol, transitions, finals):
 
         i += 1
 
+    f_enfa.close()
     return states, input_symbol, transitions, initial, finals
 
-def getEClosure(states, input_symbol, transitions, initial, finals):
-    eclosures = []
+def getClosure(states, input_symbol, transitions, initial, finals):
+    closures = []
+    closure = set()
+    closure.add(initial)
+    closure = getEClosure(transitions, closure)
+    closures.append(closure)
+    idx = -1
 
-    for state in states:
+    new_transitions = dict()
+    while idx < len(closures) - 1:
+        idx += 1
+        closure = closures[idx]
+
+        for symbol in input_symbol:
+            next_closure = set()
+
+            for state in tuple(closure):
+                if not (state in transitions):
+                    continue
+                if not (symbol in transitions[state]):
+                    continue
+                for state in transitions[state][symbol]:
+                    next_closure.update(getEClosure(transitions, set([state])))
+
+            if len(next_closure) > 0:
+                chk = True
+                for i in range(len(closures)):
+                    if closures[i] == next_closure:
+                        chk = False
+                        break
+                if chk == True:
+                    closures.append(next_closure)
+
+                if not tuple(closure) in new_transitions:
+                    new_transitions[tuple(closure)] = dict()
+                new_transitions[tuple(closure)][symbol] = next_closure
+                print (str(closure) + ': ' + symbol + ' -> ' + str(next_closure))
+
+    return closures, new_transitions
+
+def getEClosure(transitions, state_set):
+    new_set = set()
+    chk = True
+    while state_set != new_set:
+        if chk == False:
+            state_set = new_set
+        else:
+            chk = False
+        new_set = set()
+        new_set.update(list(state_set))
+
+        for state in tuple(state_set):
+            if not (state in transitions):
+                continue
+            if not ('E' in transitions[state]):
+                continue
+
+            new_set.update(transitions[state]['E'])
+
+    return state_set
 
 
 if __name__ == '__main__':

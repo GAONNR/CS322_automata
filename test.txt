@@ -1,0 +1,17 @@
+State
+1,2,3,4,5,6,7,8
+Input symbol
+a,b
+State transition function
+1,E,2
+2,a,3
+3,E,4
+4,b,5
+5,E,8
+1,E,6
+6,a,7
+7,E,8
+Initial state
+1
+Final state
+8
