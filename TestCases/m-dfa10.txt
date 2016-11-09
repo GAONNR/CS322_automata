@@ -1,0 +1,21 @@
+State
+q1,q2,q3,q4,q5,Dead
+Input symbol
+0,1
+State transition function
+Dead,0,Dead
+Dead,1,Dead
+q1,0,q2
+q1,1,q3
+q2,0,Dead
+q2,1,q4
+q3,0,q4
+q3,1,q5
+q4,0,Dead
+q4,1,Dead
+q5,0,Dead
+q5,1,q4
+Initial state
+q1
+Final state
+q5,q4
